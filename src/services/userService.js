@@ -9,27 +9,24 @@ let handleUserLogin = (email, password) => {
       let isExist = await checkUserEmail(email);
       if (isExist) {
         let user = await db.Users.findOne({
-            where : {email:email},
-            attributes: ['email','roleId','password'],
-            raw:  true
+          where: { email: email },
+          attributes: ["email", "roleId", "password"],
+          raw: true,
         });
 
-        if(user) {
-            //compape password
-            let checkPass =  bcrypt.compareSync(password, user.password)
+        if (user) {
+          //compape password
+          let checkPass = bcrypt.compareSync(password, user.password);
 
-            if(checkPass) {
-                userData.errCode ='0',
-                userData.errMessage = 'ok'
-                delete user.password
-                userData.user = user 
-            } else{
-                userData.errCode = 3,
-                userData.errMessage = 'Wrong password!'
-            }
-        } else{
-            userData.errCode = 2,
-            userData.errMessage = 'User not found!'
+          if (checkPass) {
+            (userData.errCode = "0"), (userData.errMessage = "ok");
+            delete user.password;
+            userData.user = user;
+          } else {
+            (userData.errCode = 3), (userData.errMessage = "Wrong password!");
+          }
+        } else {
+          (userData.errCode = 2), (userData.errMessage = "User not found!");
         }
 
         resolve(userData);
@@ -59,4 +56,32 @@ let checkUserEmail = (userEmail) => {
   });
 };
 
-module.exports = { handleUserLogin };
+let getAllUsers = (userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let user = {};
+      if (userId === "ALL") {
+        user = await db.Users.findAll({
+          attributes: {
+            exclude: ["password"],
+          },
+        });
+      }
+
+      if (userId && userId !== "ALL") {
+        user = await db.Users.findOne({
+          where: { id: userId },
+          attributes: {
+            exclude: ["password"],
+          },
+        });
+      }
+
+      resolve(user);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+module.exports = { handleUserLogin, getAllUsers };
